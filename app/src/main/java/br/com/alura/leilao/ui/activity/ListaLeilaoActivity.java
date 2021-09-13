@@ -35,11 +35,25 @@ public class ListaLeilaoActivity extends AppCompatActivity {
     }
 
     private List<Leilao> leiloesDeExemplo() {
-        Leilao console = new Leilao("Console");
-        console.propoe(new Lance(new Usuario("Jair"), 17.0));
-        console.propoe(new Lance(new Usuario("Bruno"), 2000.0));
+        Leilao presidencia = new Leilao("Presidencia");
+        presidencia.propoe(new Lance(new Usuario("Jair"), 17.0));
+        presidencia.propoe(new Lance(new Usuario("Lula"), 2000.0));
+        presidencia.propoe(new Lance(new Usuario("Ciro"), 25.0));
+
+        Leilao governoRS = new Leilao ("Governo RS");
+        governoRS.propoe(new Lance(new Usuario("Leite Gae"), 75.0));
+        governoRS.propoe(new Lance(new Usuario("Maionese Heinz"), 12.0));
+        governoRS.propoe(new Lance(new Usuario("Reencarnação do Brizola"), 500.00));
+
+        Leilao golpeNoSTF = new Leilao("Gope no STF");
+        golpeNoSTF.propoe(new Lance(new Usuario("Zé Trovao"), 25.0));
+        golpeNoSTF.propoe(new Lance(new Usuario("Direita Histérica"), 12.0));
+        golpeNoSTF.propoe(new Lance(new Usuario("Orvalho de Caralho"), 5.0));
+
         return new ArrayList<>(Arrays.asList(
-                console
+                presidencia,
+                governoRS,
+                golpeNoSTF
         ));
     }
 
