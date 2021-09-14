@@ -3,9 +3,15 @@ package br.com.alura.leilao.model;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.List;
+
+import br.com.alura.leilao.exceptions.LanceMenorQueUltimoLanceException;
+import br.com.alura.leilao.exceptions.LancesConsecutivosDeMesmoUsuarioException;
+import br.com.alura.leilao.exceptions.LimiteLancesUsuarioException;
 
 public class LeilaoTest {
 
@@ -23,7 +29,7 @@ public class LeilaoTest {
 
     @Before
     public void setUp() {
-        album = new Leilao("Dawn of Chromatica");
+        album = new Leilao(ALBUM_TITLE);
     }
 
     @Test
@@ -51,7 +57,7 @@ public class LeilaoTest {
     }
 
     @Test
-    public void testeGetTresMaioresLancesComTresLancesCrescente(){
+    public void testeGetTresMaioresLancesComTresLancesCrescente() {
         album.propoe(new Lance(FIRST_USER, 200.0));
         album.propoe(new Lance(SECOND_USER, 300.0));
         album.propoe(new Lance(THIRD_USER, 400));
@@ -71,13 +77,13 @@ public class LeilaoTest {
     }
 
     @Test
-    public void testeGetTresMaioresLancesListaSemLance(){
+    public void testeGetTresMaioresLancesListaSemLance() {
         tresMaioresLances = album.tresMaioresLances();
         assertEquals(0, tresMaioresLances.size());
     }
 
     @Test
-    public void testeGetTresMaioresLancesListaUmLance(){
+    public void testeGetTresMaioresLancesListaUmLance() {
         album.propoe(new Lance(FIRST_USER, 200.0));
         tresMaioresLances = album.tresMaioresLances();
         assertEquals(1, tresMaioresLances.size());
@@ -87,7 +93,7 @@ public class LeilaoTest {
     }
 
     @Test
-    public void testeGetTresMaioresLancesListaDoisLances(){
+    public void testeGetTresMaioresLancesListaDoisLances() {
         album.propoe(new Lance(FIRST_USER, 200.0));
         album.propoe(new Lance(SECOND_USER, 700.0));
         tresMaioresLances = album.tresMaioresLances();
@@ -101,7 +107,7 @@ public class LeilaoTest {
     }
 
     @Test
-    public void testeGetTresMaioresLancesListaMaisdeTresLances(){
+    public void testeGetTresMaioresLancesListaMaisdeTresLances() {
         album.propoe(new Lance(FIRST_USER, 200.0));
         album.propoe(new Lance(SECOND_USER, 800.0));
         album.propoe(new Lance(THIRD_USER, 900.0));
@@ -121,24 +127,41 @@ public class LeilaoTest {
     }
 
     @Test
-    public void testeGetMaiorLanceZeroSemLances(){
+    public void testeGetMaiorLanceZeroSemLances() {
         maiorLance = album.getMaiorLance();
         assertEquals(0.0, maiorLance, DELTA);
     }
 
     @Test
-    public void testeGetMenorLanceZeroSemLances(){
+    public void testeGetMenorLanceZeroSemLances() {
         menorLance = album.getMenorLance();
         assertEquals(0.0, menorLance, DELTA);
     }
 
-    @Test
-    public void testeNaoAdicionarLanceMenorQueOMaiorLance(){
+    @Test(expected = LanceMenorQueUltimoLanceException.class)
+    public void testeNaoAdicionarLanceMenorQueOMaiorLance() {
         album.propoe(new Lance(FIRST_USER, 500.0));
         album.propoe(new Lance(SECOND_USER, 300.0));
+    }
 
-        int quantidadeLancesDevolvida = album.quantidadeLances();
+    @Test(expected = LancesConsecutivosDeMesmoUsuarioException.class)
+    public void testeImpedirLancesConsecutivosMesmoUsuario() {
+        album.propoe(new Lance(FIRST_USER, 500.0));
+        album.propoe(new Lance(FIRST_USER, 800.0));
+    }
 
-        assertEquals(1, quantidadeLancesDevolvida);
+    @Test(expected = LimiteLancesUsuarioException.class)
+    public void usuarioNaoPodeDarMaisDeCincoLances() {
+        album.propoe(new Lance(FIRST_USER, 100.0));
+        album.propoe(new Lance(SECOND_USER, 150.0));
+        album.propoe(new Lance(FIRST_USER, 200.0));
+        album.propoe(new Lance(SECOND_USER, 250.0));
+        album.propoe(new Lance(FIRST_USER, 300.0));
+        album.propoe(new Lance(SECOND_USER, 350.0));
+        album.propoe(new Lance(FIRST_USER, 400.0));
+        album.propoe(new Lance(SECOND_USER, 450.0));
+        album.propoe(new Lance(FIRST_USER, 500.0));
+        album.propoe(new Lance(SECOND_USER, 550.0));
+        album.propoe(new Lance(FIRST_USER, 600.0));
     }
 }
