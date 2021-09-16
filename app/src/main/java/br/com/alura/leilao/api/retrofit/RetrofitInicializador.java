@@ -1,5 +1,7 @@
 package br.com.alura.leilao.api.retrofit;
 
+import static okhttp3.logging.HttpLoggingInterceptor.Level.BODY;
+
 import android.support.annotation.NonNull;
 
 import br.com.alura.leilao.api.retrofit.service.LeilaoService;
@@ -7,8 +9,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
-import static okhttp3.logging.HttpLoggingInterceptor.Level.BODY;
 
 public class RetrofitInicializador {
 

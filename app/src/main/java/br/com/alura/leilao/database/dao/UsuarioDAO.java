@@ -1,5 +1,8 @@
 package br.com.alura.leilao.database.dao;
 
+import static br.com.alura.leilao.database.contrato.UsuarioContrato.CHAVE_NOME;
+import static br.com.alura.leilao.database.contrato.UsuarioContrato.TABELA_NOME;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -12,9 +15,6 @@ import java.util.List;
 import br.com.alura.leilao.database.DatabaseHelper;
 import br.com.alura.leilao.database.contrato.UsuarioContrato;
 import br.com.alura.leilao.model.Usuario;
-
-import static br.com.alura.leilao.database.contrato.UsuarioContrato.CHAVE_NOME;
-import static br.com.alura.leilao.database.contrato.UsuarioContrato.TABELA_NOME;
 
 public class UsuarioDAO extends DatabaseHelper {
 
