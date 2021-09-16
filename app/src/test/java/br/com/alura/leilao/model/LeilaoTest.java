@@ -1,167 +1,194 @@
 package br.com.alura.leilao.model;
 
-import static org.junit.Assert.*;
-
-import org.junit.Before;
-import org.junit.Rule;
+import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.util.List;
 
-import br.com.alura.leilao.exceptions.LanceMenorQueUltimoLanceException;
-import br.com.alura.leilao.exceptions.LancesConsecutivosDeMesmoUsuarioException;
-import br.com.alura.leilao.exceptions.LimiteLancesUsuarioException;
+import br.com.alura.leilao.exception.LanceMenorQueUltimoLanceException;
+import br.com.alura.leilao.exception.LanceSeguidoDoMesmoUsuarioException;
+import br.com.alura.leilao.exception.UsuarioJaDeuCincoLancesException;
+
+import static org.hamcrest.CoreMatchers.both;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.number.IsCloseTo.closeTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class LeilaoTest {
 
-    private final double DELTA = 0.0001;
-    private final String ALBUM_TITLE = "Dawn of Chromatica";
-    private final Usuario FIRST_USER = new Usuario("Lady Gaga");
-    private final Usuario SECOND_USER = new Usuario("Ariana Grande");
-    private final Usuario THIRD_USER = new Usuario("Pabllo Vittar");
+    private static final double DELTA = 0.0001;
+    private final Leilao CONSOLE = new Leilao("Console");
+    private final Usuario ALEX = new Usuario("Alex");
 
+    @Test
+    public void deve_DevolveDescricao_QuandoRecebeDescricao() {
+        String descricaoDevolvida = CONSOLE.getDescricao();
 
-    private double maiorLance;
-    private double menorLance;
-    private Leilao album;
-    private List<Lance> tresMaioresLances;
-
-    @Before
-    public void setUp() {
-        album = new Leilao(ALBUM_TITLE);
+        assertThat(descricaoDevolvida, is(equalTo("Console")));
     }
 
     @Test
-    public void testeGetDescricao() {
-        String stringObtida = album.getDescricao();
-        assertEquals(ALBUM_TITLE, stringObtida);
+    public void deve_DevolveMaiorLance_QuandoRecebeApenasUmLance() {
+        CONSOLE.propoe(new Lance(ALEX, 200.0));
+
+        double maiorLanceDevolvido = CONSOLE.getMaiorLance();
+
+        assertThat(maiorLanceDevolvido, closeTo(200.0, DELTA));
     }
 
     @Test
-    public void testeGetMaiorLanceOrdemCrescente() {
-        album.propoe(new Lance(FIRST_USER, 250.0));
-        album.propoe(new Lance(SECOND_USER, 350.0));
-        album.propoe(new Lance(THIRD_USER, 450.0));
-        maiorLance = album.getMaiorLance();
-        assertEquals(450.0, maiorLance, DELTA);
+    public void deve_DevolveMaiorLance_QuandoRecebeMaisDeUmLanceEmOrdemCrescente() {
+        CONSOLE.propoe(new Lance(ALEX, 100.0));
+        CONSOLE.propoe(new Lance(new Usuario("Fran"), 200.0));
+
+        double maiorLanceDevolvido = CONSOLE.getMaiorLance();
+
+        assertEquals(200.0, maiorLanceDevolvido, DELTA);
     }
 
     @Test
-    public void testeGetMenorLanceOrdemCrescente() {
-        album.propoe(new Lance(FIRST_USER, 250.0));
-        album.propoe(new Lance(SECOND_USER, 350.0));
-        album.propoe(new Lance(THIRD_USER, 450.0));
-        menorLance = album.getMenorLance();
-        assertEquals(250.0, menorLance, DELTA);
+    public void deve_DevolveMenorLance_QuandoRecebeApenasUmLance() {
+        CONSOLE.propoe(new Lance(ALEX, 200.0));
+
+        double menorLanceDevolvido = CONSOLE.getMenorLance();
+
+        assertEquals(200.0, menorLanceDevolvido, DELTA);
     }
 
     @Test
-    public void testeGetTresMaioresLancesComTresLancesCrescente() {
-        album.propoe(new Lance(FIRST_USER, 200.0));
-        album.propoe(new Lance(SECOND_USER, 300.0));
-        album.propoe(new Lance(THIRD_USER, 400));
+    public void deve_DevolveMenorLance_QuandoRecebeMaisDeUmLanceEmOrdemCrescente() {
+        CONSOLE.propoe(new Lance(ALEX, 100.0));
+        CONSOLE.propoe(new Lance(new Usuario("Fran"), 200.0));
 
-        tresMaioresLances = album.tresMaioresLances();
+        double menorLanceDevolvido = CONSOLE.getMenorLance();
 
-        assertEquals(3, tresMaioresLances.size());
-        assertEquals(400.00,
-                tresMaioresLances.get(0).getValor(),
-                DELTA);
-        assertEquals(300.0,
-                tresMaioresLances.get(1).getValor(),
-                DELTA);
-        assertEquals(300.0,
-                tresMaioresLances.get(1).getValor(),
-                DELTA);
+        assertEquals(100.0, menorLanceDevolvido, DELTA);
     }
 
     @Test
-    public void testeGetTresMaioresLancesListaSemLance() {
-        tresMaioresLances = album.tresMaioresLances();
-        assertEquals(0, tresMaioresLances.size());
+    public void deve_DevolverTresMaioresLances_QuandoRecebeExatosTresLances() {
+        CONSOLE.propoe(new Lance(ALEX, 200.0));
+        CONSOLE.propoe(new Lance(new Usuario("Fran"), 300.0));
+        CONSOLE.propoe(new Lance(ALEX, 400.0));
+
+        List<Lance> tresMaioresLancesDevolvidos = CONSOLE.tresMaioresLances();
+
+        assertThat(tresMaioresLancesDevolvidos,
+                both(Matchers.<Lance>hasSize(3))
+                        .and(contains(
+                                new Lance(ALEX, 400.0),
+                                new Lance(new Usuario("Fran"), 300.0),
+                                new Lance(ALEX, 200.0))));
+
     }
 
     @Test
-    public void testeGetTresMaioresLancesListaUmLance() {
-        album.propoe(new Lance(FIRST_USER, 200.0));
-        tresMaioresLances = album.tresMaioresLances();
-        assertEquals(1, tresMaioresLances.size());
+    public void deve_DevolverTresMaioresLances_QuandoNaoRecebeLances() {
+        List<Lance> tresMaioresLancesDevolvidos = CONSOLE.tresMaioresLances();
+
+        assertEquals(0, tresMaioresLancesDevolvidos.size());
+    }
+
+    @Test
+    public void deve_DevolverTresMaioresLances_QuandoRecebeApenasUmLance() {
+        CONSOLE.propoe(new Lance(ALEX, 200.0));
+
+        List<Lance> tresMaioresLancesDevolvidos = CONSOLE.tresMaioresLances();
+
+        assertEquals(1, tresMaioresLancesDevolvidos.size());
         assertEquals(200.0,
-                tresMaioresLances.get(0).getValor(),
-                DELTA);
+                tresMaioresLancesDevolvidos.get(0).getValor(), DELTA);
     }
 
     @Test
-    public void testeGetTresMaioresLancesListaDoisLances() {
-        album.propoe(new Lance(FIRST_USER, 200.0));
-        album.propoe(new Lance(SECOND_USER, 700.0));
-        tresMaioresLances = album.tresMaioresLances();
-        assertEquals(2, tresMaioresLances.size());
+    public void deve_DevolverTresMaioresLances_QuandoRecebeApenasDoisLances() {
+        CONSOLE.propoe(new Lance(ALEX, 300.0));
+        CONSOLE.propoe(new Lance(new Usuario("Fran"), 400.0));
+
+        List<Lance> tresMaioresLancesDevolvidos = CONSOLE.tresMaioresLances();
+
+        assertEquals(2, tresMaioresLancesDevolvidos.size());
+        assertEquals(400.0,
+                tresMaioresLancesDevolvidos.get(0).getValor(), DELTA);
+        assertEquals(300.0,
+                tresMaioresLancesDevolvidos.get(1).getValor(), DELTA);
+    }
+
+    @Test
+    public void deve_DevolverTresMaioresLances_QuandoRecebeMaisDeTresLances() {
+        CONSOLE.propoe(new Lance(ALEX, 300.0));
+        final Usuario FRAN = new Usuario("Fran");
+        CONSOLE.propoe(new Lance(FRAN, 400.0));
+        CONSOLE.propoe(new Lance(ALEX, 500.0));
+        CONSOLE.propoe(new Lance(FRAN, 600.0));
+
+        final List<Lance> tresMaioresLancesDevolvidosParaQuatroLances =
+                CONSOLE.tresMaioresLances();
+
+        assertEquals(3, tresMaioresLancesDevolvidosParaQuatroLances.size());
+        assertEquals(600.0,
+                tresMaioresLancesDevolvidosParaQuatroLances.get(0).getValor(), DELTA);
+        assertEquals(500.0,
+                tresMaioresLancesDevolvidosParaQuatroLances.get(1).getValor(), DELTA);
+        assertEquals(400.0,
+                tresMaioresLancesDevolvidosParaQuatroLances.get(2).getValor(), DELTA);
+
+        CONSOLE.propoe(new Lance(ALEX, 700.0));
+
+        final List<Lance> tresMaioresLancesDevolvidosParaCincoLances =
+                CONSOLE.tresMaioresLances();
+
+        assertEquals(3, tresMaioresLancesDevolvidosParaCincoLances.size());
         assertEquals(700.0,
-                tresMaioresLances.get(0).getValor(),
-                DELTA);
-        assertEquals(200.0,
-                tresMaioresLances.get(1).getValor(),
-                DELTA);
+                tresMaioresLancesDevolvidosParaCincoLances.get(0).getValor(), DELTA);
+        assertEquals(600.0,
+                tresMaioresLancesDevolvidosParaCincoLances.get(1).getValor(), DELTA);
+        assertEquals(500.0,
+                tresMaioresLancesDevolvidosParaCincoLances.get(2).getValor(), DELTA);
     }
 
     @Test
-    public void testeGetTresMaioresLancesListaMaisdeTresLances() {
-        album.propoe(new Lance(FIRST_USER, 200.0));
-        album.propoe(new Lance(SECOND_USER, 800.0));
-        album.propoe(new Lance(THIRD_USER, 900.0));
-        album.propoe(new Lance(FIRST_USER, 1200.0));
-        album.propoe(new Lance(SECOND_USER, 2700.0));
-        tresMaioresLances = album.tresMaioresLances();
-        assertEquals(3, tresMaioresLances.size());
-        assertEquals(2700.0,
-                tresMaioresLances.get(0).getValor(),
-                DELTA);
-        assertEquals(1200.0,
-                tresMaioresLances.get(1).getValor(),
-                DELTA);
-        assertEquals(900.0,
-                tresMaioresLances.get(2).getValor(),
-                DELTA);
+    public void deve_DevolverValorZeroParaMaiorLance_QuandoNaoTiverLances() {
+        double maiorLanceDevolvido = CONSOLE.getMaiorLance();
+        assertEquals(0.0, maiorLanceDevolvido, DELTA);
     }
 
     @Test
-    public void testeGetMaiorLanceZeroSemLances() {
-        maiorLance = album.getMaiorLance();
-        assertEquals(0.0, maiorLance, DELTA);
-    }
+    public void deve_DevolverValorZeroParaMenorLance_QuandoNaoTiverLances() {
+        double menorLanceDevolvido = CONSOLE.getMenorLance();
 
-    @Test
-    public void testeGetMenorLanceZeroSemLances() {
-        menorLance = album.getMenorLance();
-        assertEquals(0.0, menorLance, DELTA);
+        assertEquals(0.0, menorLanceDevolvido, DELTA);
     }
 
     @Test(expected = LanceMenorQueUltimoLanceException.class)
-    public void testeNaoAdicionarLanceMenorQueOMaiorLance() {
-        album.propoe(new Lance(FIRST_USER, 500.0));
-        album.propoe(new Lance(SECOND_USER, 300.0));
+    public void naoDeve_AdicionarLance_QuandoForMenorQueOMaiorLance() {
+        CONSOLE.propoe(new Lance(ALEX, 500.0));
+        CONSOLE.propoe(new Lance(new Usuario("Fran"), 400.0));
     }
 
-    @Test(expected = LancesConsecutivosDeMesmoUsuarioException.class)
-    public void testeImpedirLancesConsecutivosMesmoUsuario() {
-        album.propoe(new Lance(FIRST_USER, 500.0));
-        album.propoe(new Lance(FIRST_USER, 800.0));
+    @Test(expected = LanceSeguidoDoMesmoUsuarioException.class)
+    public void naoDeve_AdicionarLance_QuandoForOMesmoUsuariDoUltimoLance() {
+        CONSOLE.propoe(new Lance(ALEX, 500.0));
+        CONSOLE.propoe(new Lance(ALEX, 600.0));
     }
 
-    @Test(expected = LimiteLancesUsuarioException.class)
-    public void usuarioNaoPodeDarMaisDeCincoLances() {
-        album.propoe(new Lance(FIRST_USER, 100.0));
-        album.propoe(new Lance(SECOND_USER, 150.0));
-        album.propoe(new Lance(FIRST_USER, 200.0));
-        album.propoe(new Lance(SECOND_USER, 250.0));
-        album.propoe(new Lance(FIRST_USER, 300.0));
-        album.propoe(new Lance(SECOND_USER, 350.0));
-        album.propoe(new Lance(FIRST_USER, 400.0));
-        album.propoe(new Lance(SECOND_USER, 450.0));
-        album.propoe(new Lance(FIRST_USER, 500.0));
-        album.propoe(new Lance(SECOND_USER, 550.0));
-        album.propoe(new Lance(FIRST_USER, 600.0));
+    @Test(expected = UsuarioJaDeuCincoLancesException.class)
+    public void naoDeve_AdicionarLance_QuandoUsuarioDerCincoLances() {
+        CONSOLE.propoe(new Lance(ALEX, 100.0));
+        final Usuario FRAN = new Usuario("Fran");
+        CONSOLE.propoe(new Lance(FRAN, 200.0));
+        CONSOLE.propoe(new Lance(ALEX, 300.0));
+        CONSOLE.propoe(new Lance(FRAN, 400.0));
+        CONSOLE.propoe(new Lance(ALEX, 500.0));
+        CONSOLE.propoe(new Lance(FRAN, 600.0));
+        CONSOLE.propoe(new Lance(ALEX, 700.0));
+        CONSOLE.propoe(new Lance(FRAN, 800.0));
+        CONSOLE.propoe(new Lance(ALEX, 900.0));
+        CONSOLE.propoe(new Lance(FRAN, 1000.0));
+        CONSOLE.propoe(new Lance(ALEX, 1100.0));
     }
+
 }
